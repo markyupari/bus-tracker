@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bus tracker</title>
+    <!--script and css sources from mapbox-->
+    <script src="https://api.tiles.mapbox.com/mapbox-gl-js/v1.11.1/mapbox-gl.js"></script>
+    <link href="https://api.tiles.mapbox.com/mapbox-gl-js/v1.11.1/mapbox-gl.css" rel="stylesheet"/>
+    <!--styling page for map-->
+    <style>
+        body { margin: 0; padding: 0;}
+        #map { position: absolute; top: 0; bottom: 0; width: 100%;}
+        /*styling of elements that goes on top of the map*/
+        .map-overlay{
+            position: absolute;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <!--class must be "map-overlay top" to be on top of the map according to mapbox documentation-->
+    <div class="map-overlay top">
+        <button style="font-size: 2em;" onclick="run()">
+            Start bus tracker
+        </button>
+    </div>
+
+    <script>
+        //personal token needed to use mapbox
+        mapboxgl.accessToken = 'pk.eyJ1IjoibWFyay15dXBhcmkiLCJhIjoiY2xpdG5xbHkyMjFiajNmdGhneGh4cmwwMyJ9.U23WuvAQXRpsrNzvsS5pfQ';
+        //creating map using mapbox format
+        var map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/streets-v11',
+            center: [-71.07681525, 42.33628521],
+            zoom: 14
+        });
+        //creating marker on the map using mapbox format
+        var marker = new mapboxgl.Marker()
+            .setLngLat([-71.07681525, 42.33628521])
+            .addTo(map);
+        //function to get data from bus and pasing it to the marker location
+        async function run() {
+            const locations = await getBusLocation();
+            console.log(new Date()); //new date on console for diag
+            console.log(locations); //showing data on console for diag
+            //pasing bus Longitude and Latitude to the marker
+            marker.setLngLat([locations[0].attributes.longitude, locations[0].attributes.latitude])
+
+            // timer for 15 seconds (recommended time for get data and dont be baned)
+            setTimeout(run, 15000);
+        }
+        //fetching data from the server
+        async function getBusLocation() {
+            const url = 'https://api-v3.mbta.com/vehicles?filter[route]=1&include=trip';
+            const response = await fetch(url);
+            const json = await response.json();
+            return json.data;
+        }
+
+        
+    </script>
+</body>
+</html>
